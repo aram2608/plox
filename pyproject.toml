@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 authors = [
-    { name = "Javier Arambula Rascon", email = "ja1473@Javiers-MacBook-Pro.local" }
+    { name = "Javier Arambula Rascon", email = "ja1473" }
 ]
 requires-python = ">=3.13"
 dependencies = []
