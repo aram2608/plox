@@ -1,0 +1,128 @@
+/* ================================
+   Lox Scanner Token Exhaustive Test
+   - Single-line and multi-line comments
+   - Single-char tokens
+   - Two-char tokens
+   - Identifiers, numbers, strings
+   - All standard keywords
+   ================================= */
+
+// ---------- C-style multiline comment test ----------
+/*
+This is a multi-line comment.
+It spans multiple lines and should be ignored by the scanner.
+*/
+
+// ---------- Single-line comment test ----------
+// This line should be completely ignored by the scanner.
+
+// ---------- Single-character tokens ----------
+( )
+{ }
+, .
+- +
+; 
+/ *
+ 
+// Put them on one line as well:
+(){} , . - + ; / *
+
+// ---------- One/two-character operator tokens ----------
+! !=
+= ==
+> >=
+< <=
+
+// Also together to ensure proper splitting:
+!!= === =>= > >=< <=
+
+// ---------- Literals: numbers ----------
+123
+0
+42
+3.14159
+. // (should be DOT, already tested above)
+999.000
+0.5
+
+// ---------- Literals: strings ----------
+"hello, world"
+""
+
+// ---------- Identifiers ----------
+foo
+bar
+_baz
+qux123
+alpha_beta_gamma
+print_  // identifier (not the keyword 'print')
+
+// ---------- Keywords (all standard Crafting Interpreters) ----------
+and
+class
+else
+false
+for
+fun
+if
+nil
+or
+print
+return
+super
+this
+true
+var
+while
+
+// ---------- Mixed usage to exercise token boundaries ----------
+var a = 123;
+var b = 45.67;
+var s = "token soup";
+print a + b;         // +
+print a - b;         // -
+print a * 2;         // *
+print b / 2;         // /
+print a > b;         // >
+print a >= b;        // >=
+print a < b;         // <
+print a <= b;        // <=
+print a == b;        // ==
+print a != b;        // !=
+
+if (true and !false) {
+  print "logic ok";
+} else {
+  print "logic failed";
+}
+
+for (var i = 0; i < 3; i = i + 1) {
+  print i;
+}
+
+while (false or (a < 200)) {
+  print "loop once";
+  a = 999;
+}
+
+// ---------- Class/super/this/fun/return ----------
+class Greeter {
+  init(message) {
+    this.message = message;
+  }
+
+  say() {
+    print this.message;
+    return nil;
+  }
+}
+
+fun makeGreeter(m) {
+  return Greeter(m);
+}
+
+var g = makeGreeter("hola");
+g.say();
+
+// ---------- More punctuation adjacency ----------
+(1+2)*(3-4)/5; { print "block."; } ; ; .
