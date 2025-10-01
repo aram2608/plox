@@ -1,3 +1,180 @@
 from __future__ import annotations
+from typing import List
 
-from ast.expr import Unary, Binary
+from ast.expr import Unary, Binary, Literal, Expr
+from core.token import Token, TokenType
+
+
+class ParserError(Exception):
+    """A custom class for handling errors at parse time."""
+
+    def __init__(self, token: TokenType, message: str):
+        """
+        To initialize our error class, we pass in the token of interest and an
+        error message.
+        """
+        self.token = token
+        self.message = message
+        super().__init__(f"[Token {token}] Error: {message}")
+
+    def __str__(self):
+        RED = "\033[91m"
+        RESET = "\033[0m"
+        return f"{RED}[Token {self.token}] Error: {self.message}{RESET}"
+
+
+class Parse:
+    def __init__(self, tokens: List[Token]):
+        """
+        To initialize our parser class we only need to pass in a list of tokens.
+        """
+        self.tokens = tokens
+        self.current = 0
+
+    def parse(self) -> List[Expr]:
+        """
+        This function is the main logic for creating our abstract syntax tree.
+        """
+        # We initialize an empty list for our expressions
+        exprs = []
+        # While we have not reached the end of the list of tokens, we append
+        # the parsed syntax tree to our list
+        while not self.is_end():
+            exprs.append(self.expression())
+
+        # After parsing we return our list
+        return exprs
+
+    def expression(self) -> Expr:
+        return self.equality()
+
+    def equality(self):
+        expr: Expr = self.term()
+
+        while self.match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL):
+            operator: Token = self.previous()
+            right: Expr = self.term()
+            expr: Binary = Binary(expr, operator, right)
+
+        return expr
+
+    def comparison(self) -> Expr:
+        expr: Expr = self.term()
+
+        while self.match(
+            TokenType.LESS,
+            TokenType.LESS_EQUAL,
+            TokenType.GREATER,
+            TokenType.GREATER_EQUAL,
+        ):
+            operator: Token = self.previous()
+            right: Expr = self.term()
+            expr: Binary = Binary(expr, operator, right)
+
+        return expr
+
+    def term(self) -> Expr:
+        # We create the left most expression from the unary method
+        expr: Expr = self.term()
+
+        # If we match any of the lower precedence arithmetic Tokens
+        while self.match(TokenType.PLUS, TokenType.MINUS):
+            # We continously add to the Binary node
+            operator: Token = self.previous()
+            right: Expr = self.unary()
+            expr: Binary = Binary(expr, operator, right)
+
+        # We then return the expression
+        return expr
+
+    def factor(self) -> Expr:
+        # We create the left most expression from the unary method
+        expr: Expr = self.unary()
+
+        # If we match any of the higher precedence arithmetic Tokens
+        while self.match(TokenType.SLASH, TokenType.STAR, TokenType.MOD):
+            # We continously add to the Binary node
+            operator: Token = self.previous()
+            right: Expr = self.unary()
+            expr: Binary = Binary(expr, operator, right)
+
+        # We then return the expression
+        return expr
+
+    def unary(self) -> Expr:
+        if self.match(TokenType.BANG, TokenType.MINUS):
+            operator: Token = self.previous()
+            right: Unary = self.unary()
+            return Unary(operator, right)
+        elif self.match(TokenType.MINUS_MINUS):
+            # TODO: Add prefix decrement
+            ...
+        elif self.match(TokenType.PLUS_PLUS):
+            # TODO: Add prefix increment
+            ...
+        return self.primary()
+
+    def primary(self) -> Literal:
+        if self.match(TokenType.FALSE):
+            return Literal(False)
+        if self.match(TokenType.TRUE):
+            return Literal(True)
+        if self.match(TokenType.NIL):
+            return Literal(None)
+        if self.match(TokenType.NUMBER, TokenType.STRING):
+            return Literal(self.previous().literal)
+
+        if self.match(TokenType.SUPER):
+            keyword: Token = self.previous()
+            self.consume(TokenType.DOT, "Expected '.' after super")
+            method: Token = self.consume(
+                TokenType.IDENTIFIER, "Expected superclass method name"
+            )
+            # TODO: Add super
+            ...
+
+        if self.match(TokenType.THIS):
+            # TODO: Add this
+            ...
+
+        if self.match(TokenType.IDENTIFIER):
+            # TODO: Add variables
+            ...
+
+        if self.match(TokenType.LEFT_PAREN):
+            # TODO: add groupings
+            ...
+
+        raise ParserError(self.peek(), "Expected expression")
+
+    def advance(self) -> Token:
+        if not self.is_end():
+            self.current += 1
+        return self.previous()
+
+    def check(self, _type: TokenType) -> bool:
+        if self.is_end():
+            return False
+        return self.peek()._type == _type
+
+    def consume(self, type: TokenType, message: str) -> Token:
+        if self.check(type):
+            return self.advance()
+
+        raise ParserError(self.peek(), message)
+
+    def match(self, *types: TokenType) -> bool:
+        for _type in types:
+            if self.check(_type):
+                self.advance()
+                return True
+        return False
+
+    def is_end(self) -> bool:
+        return self.peek()._type == TokenType.EOF
+
+    def peek(self) -> Token:
+        return self.tokens[self.current]
+
+    def previous(self) -> Token:
+        return self.tokens[self.current - 1]
