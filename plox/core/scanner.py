@@ -280,7 +280,7 @@ class Scanner:
 
         # We collect the stubstring of the source code and add it as our token
         lex = self.source[self.start : self.current]
-        self.tokens.append(Token(TokenType.NUMBER, float(lex)))
+        self.add_token(TokenType.NUMBER, float(lex))
 
     def make_identifier(self):
         """

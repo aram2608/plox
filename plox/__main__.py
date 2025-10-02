@@ -1,4 +1,5 @@
 from .core.scanner import Scanner
+from .core.parser import Parser
 from pathlib import Path
 import argparse
 import sys
@@ -16,35 +17,31 @@ def slurp_file(path: Path) -> str | None:
         return source
 
 
-def run_file(path: Path):
-    source = slurp_file(path)
-    if source != None:
-        scanner = Scanner(source=slurp_file(path))
-        try:
-            toks = scanner.scan_tokens()
-        except Exception as e:
-            print(e)
-        else:
-            for tok in toks:
-                print(tok)
-    else:
-        print("Aborting execution.")
-        sys.exit()
-
-
-def run_scanner(source: str):
+def run(source: str):
     scanner = Scanner(source)
     toks = scanner.scan_tokens()
-    return toks
+    parser = Parser(toks)
+    ast = parser.parse()
+    for node in ast:
+        print(node)
 
 
-def repl():
-    while True:
-        source = input("> ")
-        if source == "exit":
-            break
-        scanner = Scanner(source)
-        toks = scanner.scan_tokens()
+def run_file(path: Path):
+    try:
+        run(source=slurp_file(path))
+    except Exception as e:
+        print(e)
+
+
+# def repl():
+#     while True:
+#         source = input("> ")
+#         if source == "exit":
+#             break
+#         scanner = Scanner(source)
+#         toks = scanner.scan_tokens()
+#         parser = Parser(toks)
+#         ast = parser.parse()
 
 
 def main(file: Path) -> None:

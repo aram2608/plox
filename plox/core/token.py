@@ -65,7 +65,11 @@ class Token:
     """The Token class to present Lox Tokens."""
 
     def __init__(
-        self, _type: TokenType, lexeme: str, literal: float | str | None = None, line: int | None = None
+        self,
+        _type: TokenType,
+        lexeme: str,
+        literal: float | str | None = None,
+        line: int | None = None,
     ):
         """
         We initalize each token with its given type, the lexeme/string representation
@@ -84,10 +88,38 @@ class Token:
         return f"Token: {self._type}, {self.lexeme}, {self.literal}"
 
     def __eq__(self, other):
+        """
+        This method is the == operator overload for the Token class.
+        It is important that we define an overloaded equality operator as it
+        will make our life a lot easier when writing unit tests or any kind of
+        logical code where we have to compared two Tokens.
+        """
+        # We first check if the other object is a Token
         if isinstance(other, Token):
+            # If our check passes we compare all member variables for equality
             return (
                 self._type == other._type
                 and self.lexeme == other.lexeme
                 and self.literal == self.literal
             )
+        # If our check fails then there is no way the other object could be equal
         return False
+
+    def __ne__(self, other):
+        """
+        This method is the != operator overload for the Token class.
+        It is important that we define an overloaded inequality operator as it
+        will make our life a lot easier when writing unit tests or any kind of
+        logical code where we have to compared two Tokens.
+        """
+        # We first check if the other value is a token
+        if isinstance(other, Token):
+            # If so we make sure that all the underlying member variables are not
+            # equal
+            return (
+                self._type != self.lexeme
+                and self.lexeme != other.lexeme
+                and self.literal != other.literal
+            )
+        # If our check fails then the two objects are obviously unequal
+        return True

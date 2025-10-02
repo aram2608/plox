@@ -1,9 +1,10 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import Any, TypeVar
+from typing import Any, TypeVar, TYPE_CHECKING
 from dataclasses import dataclass
 
-from core.token import Token
+if TYPE_CHECKING:
+    from ..core.token import Token
 
 # Visitor method return type
 R = TypeVar("R")

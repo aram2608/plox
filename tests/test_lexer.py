@@ -8,6 +8,21 @@ def run_scanner(source: str):
     return toks
 
 
+def test_overload():
+    assert TokenType.AND != Token(TokenType.AND, "and")
+    assert 1 != Token(TokenType.NUMBER, float(1))
+    assert "hello world" != Token(TokenType.STRING, '"hello world"', "hello world")
+    assert Token(TokenType.STRING, '"hello world"', "hello world") != Token(
+        TokenType.STRING, '"hello_world"', "hello_world"
+    )
+    assert Token(TokenType.STRING, '"hello world"', "hello world") == Token(
+        TokenType.STRING, '"hello world"', "hello world"
+    )
+    assert Token(TokenType.NUMBER, "1", float(1)) == Token(
+        TokenType.NUMBER, "1", float(1)
+    )
+
+
 def test_plus():
     result = run_scanner("+")
     assert result[0] == Token(TokenType.PLUS, "+")
@@ -73,18 +88,21 @@ def test_keywords():
         assert result[0] == Token(token_type, kw)
         assert result[1] == Token(TokenType.EOF, "", None)
 
+
 def test_string():
     result = run_scanner('"hello world"')
-    assert result[0] == Token(TokenType.STRING, '"hello world"', 'hello world')
+    assert result[0] == Token(TokenType.STRING, '"hello world"', "hello world")
     assert result[1] == Token(TokenType.EOF, "", None)
+
 
 def test_number():
     result = run_scanner("1")
-    assert result[0] == Token(TokenType.NUMBER, float(1))
+    assert result[0] == Token(TokenType.NUMBER, "1", float(1))
+
 
 def test_simple_math():
     result = run_scanner("1 + 1")
-    assert result[0] == Token(TokenType.NUMBER, float(1))
+    assert result[0] == Token(TokenType.NUMBER, "1", float(1))
     assert result[1] == Token(TokenType.PLUS, "+")
-    assert result[2] == Token(TokenType.NUMBER, float(1))
+    assert result[2] == Token(TokenType.NUMBER, "1", float(1))
     assert result[3] == Token(TokenType.EOF, "", None)
