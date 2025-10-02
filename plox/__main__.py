@@ -1,5 +1,6 @@
 from .core.scanner import Scanner
 from .core.parser import Parser
+from .core.interpreter import Interpreter
 from pathlib import Path
 import argparse
 import sys
@@ -22,8 +23,8 @@ def run(source: str):
     toks = scanner.scan_tokens()
     parser = Parser(toks)
     ast = parser.parse()
-    for node in ast:
-        print(node)
+    interpreter = Interpreter()
+    interpreter.interpret(ast[0])
 
 
 def run_file(path: Path):
@@ -48,7 +49,7 @@ def main(file: Path) -> None:
     if file:
         run_file(file)
     else:
-        repl()
+        print("REPL not implemented")
 
 
 if __name__ == "__main__":

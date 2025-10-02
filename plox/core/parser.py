@@ -160,7 +160,6 @@ class Parser:
         if self.match(TokenType.NIL):
             return Literal(None)
         if self.match(TokenType.NUMBER, TokenType.STRING):
-            print(self.previous())
             return Literal(self.previous().literal)
 
         # if self.match(TokenType.SUPER):

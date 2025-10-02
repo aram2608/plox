@@ -15,27 +15,39 @@ class Expr(ABC):
 
     @abstractmethod
     def accept(self, visitor: ExprVisitor[R]) -> R:
-        """Default accept method."""
-        ...
+        """
+        Default accept method.
+        Any derived classes must override this or an error will be thrown.
+        """
+        raise NotImplementedError
 
 
 class ExprVisitor(ABC):
     """Abstract visitor class for expression"""
 
     @abstractmethod
-    def visit_Unary(self, element: Unary) -> R:
-        """Default accept Unary method."""
-        ...
+    def visit_Unary(self, expr: Unary) -> R:
+        """
+        Default accept Unary method.
+        Any derived classes must override this or an error will be thrown.
+        """
+        raise NotImplementedError
 
     @abstractmethod
-    def visit_Binary(self, element: Binary) -> R:
-        """Default accept Binary method."""
-        ...
+    def visit_Binary(self, expr: Binary) -> R:
+        """
+        Default accept Binary method.
+        Any derived classes must override this or an error will be thrown.
+        """
+        raise NotImplementedError
 
     @abstractmethod
-    def visit_Literal(self, element: Literal) -> R:
-        """Default accept Literal method."""
-        ...
+    def visit_Literal(self, expr: Literal) -> R:
+        """
+        Default accept Literal method.
+        Any derived classes must override this or an error will be thrown.
+        """
+        raise NotImplementedError
 
 
 @dataclass
@@ -53,7 +65,7 @@ class Binary(Expr):
     operator: Token
     right: Expr
 
-    def accept(self, visitor: ExprVisitor[R]) -> R:
+    def accept(self, visitor: ExprVisitor) -> R:
         """Accept method override for the Binary node."""
         return visitor.visit_Binary(self)
 
@@ -72,7 +84,7 @@ class Unary(Expr):
     operator: Token
     right: Expr
 
-    def accept(self, visitor: ExprVisitor[R]) -> R:
+    def accept(self, visitor: ExprVisitor) -> R:
         """Accept method override for the Unary node."""
         return visitor.visit_Unary(self)
 
@@ -87,6 +99,6 @@ class Literal(Expr):
 
     value: Any
 
-    def accept(self, visitor: ExprVisitor[R]) -> R:
+    def accept(self, visitor: ExprVisitor) -> R:
         """Accept method override for the Literal node."""
         return visitor.visit_Literal(self)
