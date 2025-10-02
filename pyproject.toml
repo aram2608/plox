@@ -1,14 +1,18 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "plox"
 version = "0.1.0"
-description = "Add your description here"
-readme = "README.md"
+description = "Python implementation of Rob Nystrom's jlox."
 authors = [
-    { name = "Javier Arambula Rascon", email = "ja1473" }
+  { name = "Javier Arambula" }
 ]
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+  "pytest",
+]
 
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+[tool.setuptools]
+include-package-data = true

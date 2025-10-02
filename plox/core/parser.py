@@ -46,11 +46,21 @@ class Parse:
         return exprs
 
     def expression(self) -> Expr:
+        """Main method used to parse expressions."""
         return self.equality()
 
-    def equality(self):
-        expr: Expr = self.term()
+    def equality(self) -> Expr:
+        """
+        This function handles the parsing of equality operations.
+        Example:
+            1 == 1 or 1 != 4
+        """
+        # We first extract the left hand expression
+        expr: Expr = self.comparison()
 
+        # As long as we match a != or ==, we continuously extract the operator
+        # Token and right hand expression before creating a binary expression
+        # node, this ensures nested expressions are valid 1 == 1 == 4
         while self.match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL):
             operator: Token = self.previous()
             right: Expr = self.term()
@@ -59,8 +69,16 @@ class Parse:
         return expr
 
     def comparison(self) -> Expr:
+        """
+        This function handles the parsing of comaprisons operators.
+        Example:
+            1 >= 4 or 1 > 4
+        """
+        # We extract the left hand expression
         expr: Expr = self.term()
 
+        # While we match any comparison operators, we parse the operator Token
+        # and right hand expression. 
         while self.match(
             TokenType.LESS,
             TokenType.LESS_EQUAL,

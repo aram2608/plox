@@ -1,6 +1,7 @@
 from .core.scanner import Scanner
 from pathlib import Path
 import argparse
+import sys
 
 
 def slurp_file(path: Path) -> str | None:
@@ -27,18 +28,34 @@ def run_file(path: Path):
             for tok in toks:
                 print(tok)
     else:
-        raise SystemExit(1)
+        print("Aborting execution.")
+        sys.exit()
+
+
+def run_scanner(source: str):
+    scanner = Scanner(source)
+    toks = scanner.scan_tokens()
+    return toks
+
+
+def repl():
+    while True:
+        source = input("> ")
+        if source == "exit":
+            break
+        scanner = Scanner(source)
+        toks = scanner.scan_tokens()
 
 
 def main(file: Path) -> None:
     if file:
         run_file(file)
     else:
-        print("No file provided.")
+        repl()
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("path")
+    parser.add_argument("--file", type=Path, default=None, help="Path to Lox file.")
     args = parser.parse_args()
-    main(args.path)
+    main(args.file)

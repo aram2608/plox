@@ -1,4 +1,5 @@
 from enum import Enum, auto
+from typing import Any
 
 
 class TokenType(Enum):
@@ -63,7 +64,9 @@ class TokenType(Enum):
 class Token:
     """The Token class to present Lox Tokens."""
 
-    def __init__(self, _type: TokenType, lexeme, literal=None, line=0):
+    def __init__(
+        self, _type: TokenType, lexeme: str, literal: float | str | None = None, line: int | None = None
+    ):
         """
         We initalize each token with its given type, the lexeme/string representation
         a literal value (ie 1, 5, "hello world"), and the line number for error
@@ -76,4 +79,15 @@ class Token:
 
     def __repr__(self) -> str:
         """A representation method to print out Tokens to the stream."""
-        return f"Token: {self._type}, {self.lexeme} {self.literal}"
+        if not self.lexeme:
+            return f"Token: {self._type}, {self.literal}"
+        return f"Token: {self._type}, {self.lexeme}, {self.literal}"
+
+    def __eq__(self, other):
+        if isinstance(other, Token):
+            return (
+                self._type == other._type
+                and self.lexeme == other.lexeme
+                and self.literal == self.literal
+            )
+        return False

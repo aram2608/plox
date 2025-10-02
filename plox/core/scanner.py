@@ -49,7 +49,7 @@ class Scanner:
         # We store an integer value to represent the current tok position
         self.current: int = 0
         # An integer value to represent the point at which we start scanning toks
-        self.start: int | None = None
+        self.start: int = None
         # We keep track of the line number of the Lox Script for error handling
         self.line: int = 0
         # To check if a token type is a number, we check if it can be found
@@ -93,7 +93,7 @@ class Scanner:
 
         # After the source code is depleted, we add an end of file toke and return
         # our generated tokens
-        self.add_token(TokenType.EOF)
+        self.tokens.append(Token(TokenType.EOF, "", None, self.line))
         return self.tokens
 
     def scan(self) -> None:
@@ -115,10 +115,6 @@ class Scanner:
             case " " | "\r" | "\t":
                 pass
             # Single character tokens
-            case "+":
-                self.add_token(TokenType.PLUS)
-            case "-":
-                self.add_token(TokenType.MINUS)
             case "*":
                 self.add_token(TokenType.STAR)
             case "%":
@@ -144,6 +140,16 @@ class Scanner:
             case ".":
                 self.add_token(TokenType.DOT)
             # Double character tokens
+            case "+":
+                if self.match("+"):
+                    self.add_token(TokenType.PLUS_PLUS)
+                else:
+                    self.add_token(TokenType.PLUS)
+            case "-":
+                if self.match("-"):
+                    self.add_token(TokenType.MINUS_MINUS)
+                else:
+                    self.add_token(TokenType.MINUS)
             case "!":
                 if self.match("="):
                     self.add_token(TokenType.BANG_EQUAL)
@@ -194,7 +200,8 @@ class Scanner:
         return char
 
     def peek(self) -> str | None:
-        """Method used to peek at the current character,
+        """
+        Method used to peek at the current character,
         Does not increment character count.
         """
         # We first make sure we have not reached the end of the file
@@ -206,7 +213,7 @@ class Scanner:
 
     def peek_next(self) -> str:
         """
-        Method use to peek at the next character, does increment charactrer count.
+        Method use to peek at the next character, does increment character count.
         """
         # We check if the next value is greater than the overall length of the source
         # If so we return a null terminator character
@@ -221,15 +228,15 @@ class Scanner:
         """
         return self.current >= len(self.source)
 
-    def add_token(self, _type: TokenType, literal: None | Any = None) -> None:
+    def add_token(self, _type: TokenType, literal: str | float | None = None) -> None:
         """
         This method creates our Token of interest and appends it to the self.tokens
         member variable.
         """
         # We first extract out the lexeme
-        text = self.source[self.start : self.current]
+        lex = self.source[self.start : self.current]
         # We can not create and add our token
-        self.tokens.append(Token(_type, text, literal, self.line))
+        self.tokens.append(Token(_type, lex, literal, self.line))
 
     def make_string(self) -> None:
         """
