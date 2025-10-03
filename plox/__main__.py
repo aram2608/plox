@@ -24,7 +24,8 @@ def run_lox(source: str) -> None:
     parser = Parser(toks)
     ast = parser.parse()
     interpreter = Interpreter()
-    interpreter.interpret(ast[0])
+    if ast:
+        interpreter.interpret(ast[0])
 
 
 def run_file(path: Path) -> int:

@@ -53,6 +53,9 @@ def test_lesser():
 def test_grouped_math():
     assert run_interpreter("( 1 + 1 ) + ( 4 * 4 )") == 18.0
 
+def test_complex_math():
+    assert run_interpreter("(1 / 5 + 4 / 1 + ( 4 + 4)) * 2") == 24.4
+
 def test_runtime_error():
     with pytest.raises(LoxRunTimeError):
         run_interpreter("1 / 0")

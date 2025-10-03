@@ -98,9 +98,9 @@ class Token:
         if isinstance(other, Token):
             # If our check passes we compare all member variables for equality
             return (
-                self._type == other._type
+                self._type is other._type
                 and self.lexeme == other.lexeme
-                and self.literal == self.literal
+                and self.literal == other.literal
             )
         # If our check fails then there is no way the other object could be equal
         return False
@@ -114,12 +114,11 @@ class Token:
         """
         # We first check if the other value is a token
         if isinstance(other, Token):
-            # If so we make sure that all the underlying member variables are not
-            # equal
+            # If so we make that at least one memmber variable is unequal
             return (
-                self._type != self.lexeme
-                and self.lexeme != other.lexeme
-                and self.literal != other.literal
+                self._type is not other._type
+                or self.lexeme != other.lexeme
+                or self.literal != other.literal
             )
         # If our check fails then the two objects are obviously unequal
         return True

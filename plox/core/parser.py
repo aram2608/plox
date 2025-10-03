@@ -15,12 +15,12 @@ class ParserError(Exception):
         """
         self.token = token
         self.message = message
-        super().__init__(f"[Token {token}] Error: {message}")
+        super().__init__(f"[Line {token.line}] Error: {message}")
 
     def __str__(self):
         RED = "\033[91m"
         RESET = "\033[0m"
-        return f"{RED}[Token {self.token}] Error: {self.message}{RESET}"
+        return f"{RED}[Line {self.token.line}]: Error: {self.message} after {self.token.lexeme}{RESET}"
 
 
 class Parser:
@@ -104,7 +104,7 @@ class Parser:
         while self.match(TokenType.PLUS, TokenType.MINUS):
             # We continously add to the Binary node
             operator: Token = self.previous()
-            right: Expr = self.unary()
+            right: Expr = self.factor()
             expr: Binary = Binary(expr, operator, right)
 
         # We then return the expression
