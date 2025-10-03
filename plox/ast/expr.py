@@ -26,6 +26,14 @@ class ExprVisitor(ABC):
     """Abstract visitor class for expression"""
 
     @abstractmethod
+    def visit_Grouping(self, expr: Grouping) -> R:
+        """
+        Default accept Grouping method.
+        Any derived classes must override this or an error will be thrown.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
     def visit_Unary(self, expr: Unary) -> R:
         """
         Default accept Unary method.
@@ -49,6 +57,21 @@ class ExprVisitor(ABC):
         """
         raise NotImplementedError
 
+
+@dataclass
+class Grouping(Expr):
+    """
+    Class used to represent Groupings. Constructed as a dataclass
+    Args:
+        expr (ie expression) is the underlying expression contained in the
+        parenthesis
+    """
+
+    expr: Expr
+
+    def accept(self, visitor: ExprVisitor) -> R:
+        """Accept method override for the Grouping node."""
+        return visitor.visit_Grouping(self)
 
 @dataclass
 class Binary(Expr):

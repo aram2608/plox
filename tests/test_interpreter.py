@@ -1,6 +1,8 @@
 from plox.core.scanner import Scanner
 from plox.core.parser import Parser
-from plox.core.interpreter import Interpreter
+from plox.core.interpreter import Interpreter, LoxRunTimeError
+
+import pytest
 
 def run_interpreter(source: str):
     scanner = Scanner(source)
@@ -47,3 +49,10 @@ def test_lesser_equal():
 def test_lesser():
     assert run_interpreter("3 < 5") == True
     assert run_interpreter("3 < 1") == False
+
+def test_grouped_math():
+    assert run_interpreter("( 1 + 1 ) + ( 4 * 4 )") == 18.0
+
+def test_runtime_error():
+    with pytest.raises(LoxRunTimeError):
+        run_interpreter("1 / 0")

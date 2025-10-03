@@ -51,7 +51,7 @@ class Scanner:
         # An integer value to represent the point at which we start scanning toks
         self.start: int = None
         # We keep track of the line number of the Lox Script for error handling
-        self.line: int = 0
+        self.line: int = 1
         # To check if a token type is a number, we check if it can be found
         # in this member variable
         self.numbers: str = "0123456789"

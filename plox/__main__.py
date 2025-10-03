@@ -18,7 +18,7 @@ def slurp_file(path: Path) -> str | None:
         return source
 
 
-def run(source: str):
+def run_lox(source: str) -> None:
     scanner = Scanner(source)
     toks = scanner.scan_tokens()
     parser = Parser(toks)
@@ -27,33 +27,40 @@ def run(source: str):
     interpreter.interpret(ast[0])
 
 
-def run_file(path: Path):
+def run_file(path: Path) -> int:
     try:
-        run(source=slurp_file(path))
+        run_lox(source=slurp_file(path))
     except Exception as e:
         print(e)
+        return 1
+    return 0
+
+def repl() -> int:
+    while True:
+        source = input("> ")
+        if source == "exit":
+            break
+        try:
+            run_lox(source=source)
+        except Exception as e:
+            print(e)
+            continue
+    return 0
 
 
-# def repl():
-#     while True:
-#         source = input("> ")
-#         if source == "exit":
-#             break
-#         scanner = Scanner(source)
-#         toks = scanner.scan_tokens()
-#         parser = Parser(toks)
-#         ast = parser.parse()
+def main(argv=None) -> int | None:
+    if argv is None:
+        argv = sys.argv[1:]
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--file", "-f", type=Path, default=None, help="Path to Lox file.")
+    args = parser.parse_args(argv)
 
-def main(file: Path) -> None:
-    if file:
-        run_file(file)
+    if args.file:
+        return run_file(args.file)
     else:
-        print("REPL not implemented")
+        return repl()
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--file", type=Path, default=None, help="Path to Lox file.")
-    args = parser.parse_args()
-    main(args.file)
+    raise SystemExit(main())

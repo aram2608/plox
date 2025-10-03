@@ -1,5 +1,5 @@
 from __future__ import annotations
-from ..ast.expr import ExprVisitor, Expr, Binary, Unary, Literal
+from ..ast.expr import ExprVisitor, Expr, Binary, Unary, Literal, Grouping
 from .token import Token, TokenType
 
 from typing import TYPE_CHECKING, TypeVar, Any
@@ -15,7 +15,7 @@ class LoxRunTimeError(Exception):
         """
         self.token = token
         self.message = message
-        super().__init__(f"Error: {message}, {token}")
+        super().__init__(f"Error: {message} \n {token.lexeme}")
 
     def __str__(self):
         """
@@ -24,7 +24,7 @@ class LoxRunTimeError(Exception):
         # Some ASCII escape characters to pretty up the output
         RED = "\033[91m"
         RESET = "\033[0m"
-        return f"{RED}Error: {self.message}, {self.token}{RESET}"
+        return f"{RED}Error: {self.message}\nOperator: {self.token.lexeme}{RESET}"
 
 
 class Interpreter(ExprVisitor):
@@ -51,11 +51,7 @@ class Interpreter(ExprVisitor):
         Args:
             expression is the expression we wish to evaluate
         """
-        try:
-            value = self.evaluate(expression)
-            return value
-        except LoxRunTimeError as e:
-            print(e)
+        return self.evaluate(expression)
 
     def evaluate(self, expression: Expr):
         """
@@ -66,6 +62,11 @@ class Interpreter(ExprVisitor):
         # We pass in a reference to self
         # and have it retrieve the correct vist method
         return expression.accept(self)
+
+    def visit_Grouping(self, expr: Grouping) -> Any:
+        """This functions provides the logice to interpret Groupind nodes."""
+        # We simply evalaute the underlying expression and return it
+        return self.evaluate(expr.expr)
 
     def visit_Binary(self, expr: Binary) -> Any:
         """
@@ -138,7 +139,7 @@ class Interpreter(ExprVisitor):
             case TokenType.MINUS:
                 self.check_num_operand(expr.operator, right)
                 return -right
-
+        # Unreachable so we return nothing
         return
 
     def visit_Literal(self, expr: Literal) -> Any:
@@ -150,6 +151,7 @@ class Interpreter(ExprVisitor):
         return expr.value
 
     def is_truthy(self, object: Any) -> bool:
+        """A helper method to test if the underlying expression is truthy."""
         if type(object) == None:
             return False
         if type(object) == bool:
@@ -157,16 +159,19 @@ class Interpreter(ExprVisitor):
         return True
 
     def check_num_operand(self, operator: Token, operand: float) -> None:
+        """Helper method to check the operand type to ensure it is a number."""
         if type(operand) == float:
             return
         raise LoxRunTimeError(operator, "Operand must be a number.")
-    
+
     def check_num_operands(self, operator: Token, left: float, right: float):
+        """Helper method to check two operand type to ensure they are numbers."""
         if type(left) == float and type(right) == float:
             return
         raise LoxRunTimeError(operator, "Operands must be numbers.")
 
     def is_equal(self, a: Any, b: Any) -> bool:
+        """A helper method to test whether two objects are equal."""
         if type(a) == None and type(b) == None:
             return True
         if type(a) == None:

@@ -16,3 +16,7 @@ dependencies = [
 
 [tool.setuptools]
 include-package-data = true
+packages = ["plox"]
+
+[project.scripts]
+plox = "plox.__main__:main"

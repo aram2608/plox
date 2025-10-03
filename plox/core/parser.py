@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import List
 
-from ..ast.expr import Unary, Binary, Literal, Expr
+from ..ast.expr import Expr, Grouping, Binary, Unary, Literal
 from .token import Token, TokenType
 
 
@@ -153,6 +153,8 @@ class Parser:
         Method to handle parsing of primitive types in Lox. These are the most basic components
         in any Lox script.
         """
+        # The base primitives are quite simple, we match the TokenType and
+        # return the appropriate Literal type
         if self.match(TokenType.FALSE):
             return Literal(False)
         if self.match(TokenType.TRUE):
@@ -179,9 +181,15 @@ class Parser:
         #     # TODO: Add variables
         #     ...
 
-        # if self.match(TokenType.LEFT_PAREN):
-        #     # TODO: add groupings
-        #     ...
+        # We first match the opening parenethesis '('
+        if self.match(TokenType.LEFT_PAREN):
+            # We then return the underlying the expression
+            expr: Expr = self.expression()
+            # We need to consume the closing ')' and throw and error if parens are
+            # not closed
+            self.consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.")
+            # We then return our grouping
+            return Grouping(expr)
 
         raise ParserError(self.peek(), "Expected expression")
 
