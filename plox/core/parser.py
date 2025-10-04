@@ -1,7 +1,8 @@
 from __future__ import annotations
 from typing import List
 
-from ..ast.expr import Expr, Grouping, Binary, Unary, Literal
+from ..ast.expr import Expr, Logical, Conditional, Grouping, Binary, Unary, Literal
+from ..ast.stmt import Stmt, ExpressionStmt, Print
 from .token import Token, TokenType
 
 
@@ -31,23 +32,99 @@ class Parser:
         self.tokens = tokens
         self.current = 0
 
-    def parse(self) -> List[Expr]:
+    def parse(self) -> List[Stmt]:
         """
         This function is the main logic for creating our abstract syntax tree.
         """
         # We initialize an empty list for our expressions
-        exprs = []
+        smts = []
         # While we have not reached the end of the list of tokens, we append
         # the parsed syntax tree to our list
         while not self.is_end():
-            exprs.append(self.expression())
+            smts.append(self.statement())
 
         # After parsing we return our list
-        return exprs
+        return smts
+    
+    def statement(self):
+        """Main method used to parse statements."""
+        if self.match(TokenType.PRINT):
+            return self.print_stmt()
+        
+        return self.expression_stmt()
+    
+    def print_stmt(self):
+        """Function to create print statements."""
+        # We store the underlying expression
+        value: Expr = self.expression()
+        # We always end a statement with a semicolon
+        self.consume(TokenType.SEMICOLON, "Expected ';' after value")
+        # We then return the Print Stmt
+        return Print(value)
+
+    def expression_stmt(self):
+        """Function to create expression statements."""
+        # We store the underlying expression
+        value: Expr = self.expression()
+        # We always end a statement with a semicolon
+        self.consume(TokenType.SEMICOLON, "Expected ';' after value")
+        # We then return the Expression Stmt
+        return ExpressionStmt(value)
 
     def expression(self) -> Expr:
         """Main method used to parse expressions."""
-        return self.equality()
+        return self.conditional()
+
+    def conditional(self):
+        expr: Expr = self.logical_or()
+
+        while self.match(TokenType.QUESTION):
+            operator: Token = self.previous()
+            left: Expr = self.expression()
+            self.consume(TokenType.COLON, "Expected ':'")
+            right: Expr = self.conditional()
+            expr: Conditional = Conditional(expr, operator, left, right)
+        return expr
+
+    def logical_or(self):
+        """
+        This function handles the parsing of logical and operations.
+        Example:
+            True or True
+        """
+        expr: Expr = self.logical_and()
+
+        # While we math the or keyword
+        while self.match(TokenType.OR):
+            # We extract the token and right hand expression
+            operator: Token = self.previous()
+            right: Expr = self.logical_and()
+            # We then create a Logical node
+            expr: Binary = Logical(expr, operator, right)
+
+        # We return the final expression
+        return expr
+
+    def logical_and(self):
+        """
+        This function handles the parsing of logical and operations.
+        Example:
+            True and True
+        """
+        # We first extract the left hand expression
+        expr: Expr = self.equality()
+
+        # While we match and Tokens
+        while self.match(TokenType.AND):
+            # We extract the token
+            operator: Token = self.previous()
+            # And right hand expression
+            right: Expr = self.equality()
+            # We then create a new Binary node
+            expr: Binary = Logical(expr, operator, right)
+
+        # We finally return our completed expression
+        return expr
 
     def equality(self) -> Expr:
         """

@@ -10,6 +10,22 @@ if TYPE_CHECKING:
 R = TypeVar("R")
 
 
+class InvalidAssignment(Exception):
+    """A custom class to handle assignments."""
+
+    def __init__(self, message, value):
+        self.value = value
+        self.message = message
+        super().__init__(f"{message}")
+
+    def __str__(self):
+        """Custom string method for the InvalidAssignment Exception"""
+        # Some ASCII escape characters to pretty up the output
+        RED = "\033[91m"
+        RESET = "\033[0m"
+        return f"{RED}{self.message} at {self.value}{RESET}"
+
+
 class Expr(ABC):
     """Abstract class for expressions."""
 
@@ -21,22 +37,38 @@ class Expr(ABC):
         """
         raise NotImplementedError
 
+    def make_assignment(value: Expr) -> None:
+        """
+        Default make assignment method. This is a bit of a hack but we are going
+        to have the nodes themselves resolve assignments. Only Variable nodes
+        are allowed to create them.
+        """
+        raise InvalidAssignment("Invalid Assignment Target", value)
+
 
 class ExprVisitor(ABC):
-    """Abstract visitor class for expression"""
+    """Abstract visitor class for expression."""
 
     @abstractmethod
-    def visit_Grouping(self, expr: Grouping) -> R:
+    def visit_Conditional(self, expr: Conditional) -> R:
         """
-        Default accept Grouping method.
-        Any derived classes must override this or an error will be thrown.
+        Default visit Condtional method.
+        Any derived class must override this or an error will be throw
         """
         raise NotImplementedError
 
     @abstractmethod
-    def visit_Unary(self, expr: Unary) -> R:
+    def visit_Logical(self, expr: Logical) -> R:
         """
-        Default accept Unary method.
+        Default visit Logical method.
+        Any derived class must override this or an error will be throw
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def visit_Grouping(self, expr: Grouping) -> R:
+        """
+        Default visit Grouping method.
         Any derived classes must override this or an error will be thrown.
         """
         raise NotImplementedError
@@ -44,7 +76,15 @@ class ExprVisitor(ABC):
     @abstractmethod
     def visit_Binary(self, expr: Binary) -> R:
         """
-        Default accept Binary method.
+        Default visit Binary method.
+        Any derived classes must override this or an error will be thrown.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def visit_Unary(self, expr: Unary) -> R:
+        """
+        Default visit Unary method.
         Any derived classes must override this or an error will be thrown.
         """
         raise NotImplementedError
@@ -52,10 +92,83 @@ class ExprVisitor(ABC):
     @abstractmethod
     def visit_Literal(self, expr: Literal) -> R:
         """
-        Default accept Literal method.
+        Default visit Literal method.
         Any derived classes must override this or an error will be thrown.
         """
         raise NotImplementedError
+
+
+# @dataclass
+# class Variable(Expr):
+#     """
+
+#     """
+#     name: Token
+
+#     def accept(self, visitor):
+#         """Accept method override for the Variable node."""
+#         return visitor.visit_Variable(self)
+
+#     def make_assignment(self, value: Expr):
+#         """Make assignment override. We return a new Assign node."""
+#         return Assign(self.name, value)
+
+# @dataclass
+# class Assign(Expr):
+#     """
+
+#     """
+#     name: Token
+#     value: Expr
+
+#     def accept(self, visitor):
+#         """Accept method override for the Assign node."""
+#         return visitor.visit_Assign(self)
+
+
+@dataclass
+class Conditional(Expr):
+    """
+    Class used to represent Condition expressions. Construced as a dataclass
+    Args:
+        condition is the expression to be evaluated and compared.
+        left is the left expression
+        operator is the ternary operator
+        right is the right expression
+    This class handles ternary expression which are one-liner if else statements
+    For example:
+        x = (1 < 4) ? 5 : 4
+        x = 5
+    """
+
+    condition: Expr
+    operator: Token
+    left: Expr
+    right: Expr
+
+    def accept(self, visitor: ExprVisitor) -> R:
+        """Accept method override for the Conditional node."""
+        return visitor.visit_Conditional(self)
+
+
+@dataclass
+class Logical(Expr):
+    """
+    Class used to represent Logical expressions. Constructed as a dataclass
+    Args:
+        left is the left expression
+        operator is the Token representation of the operator
+        right is the right expression
+    This class handles logical opertions such as 'True and True' or 'False or True'
+    """
+
+    left: Expr
+    operator: Token
+    right: Expr
+
+    def accept(self, visitor: ExprVisitor) -> R:
+        """Accept method override for the Logical node."""
+        return visitor.visit_Logical(self)
 
 
 @dataclass
@@ -73,6 +186,7 @@ class Grouping(Expr):
         """Accept method override for the Grouping node."""
         return visitor.visit_Grouping(self)
 
+
 @dataclass
 class Binary(Expr):
     """
@@ -81,7 +195,7 @@ class Binary(Expr):
         left is the left expression
         operator is the Token representation of the operator
         right is the right expression
-        This class handles arithmetic operations such as 1 + 1, 1 / 2, etc...
+    This class handles arithmetic operations such as 1 + 1, 1 / 2, etc...
     """
 
     left: Expr
@@ -100,8 +214,8 @@ class Unary(Expr):
     Args:
         operator is the Token representation of the operator
         right is the right expression
-        This class handles arithmetic operations such as - 1, and logical operations
-        such as !=
+    This class handles arithmetic operations such as - 1, and logical operations
+    such as !=
     """
 
     operator: Token

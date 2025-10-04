@@ -334,7 +334,7 @@ class Scanner:
         """A helper method to test if the current char is a letter."""
         # None can not be compared to a string so if we come across None for some
         # reason we need to make sure we don't throw and exception
-        if char == None:
+        if char is None:
             return False
         # Otherwise we test if our character is in the self.alpha member
         # containing characters and "_"
@@ -344,7 +344,7 @@ class Scanner:
         """A simple helper to test if a character is a number."""
         # None can not be compared to a number so if we come across None for some
         # reason we need to make sure we don't throw and exception
-        if char == None:
+        if char is None:
             return False
         # Otherwise we test if our character is in the self.numbers member
         return char in self.numbers

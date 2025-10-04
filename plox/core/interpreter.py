@@ -1,5 +1,6 @@
 from __future__ import annotations
 from ..ast.expr import ExprVisitor, Expr, Binary, Unary, Literal, Grouping
+from ..ast.stmt import StmtVisitor, Stmt, ExpressionStmt, Print
 from .token import Token, TokenType
 
 from typing import TYPE_CHECKING, TypeVar, Any
@@ -27,11 +28,11 @@ class LoxRunTimeError(Exception):
         return f"{RED}Error: {self.message}\nOperator: {self.token.lexeme}{RESET}"
 
 
-class Interpreter(ExprVisitor):
+class Interpreter(ExprVisitor, StmtVisitor):
     def __init__(self):
         super().__init__()
 
-    def interpret(self, expression: Expr) -> None:
+    def interpret(self, stmts: list[Stmt]) -> None:
         """
         An interactive form of the interpret method.
         This implementation prints the evaulated expression to the iostream.
@@ -39,21 +40,15 @@ class Interpreter(ExprVisitor):
             expression is the expression we wish to evaluate
         """
         try:
-            value = self.evaluate(expression)
-            print(value)
+            for stmt in stmts:
+                self.execute(stmt)
         except LoxRunTimeError as e:
             print(e)
 
-    def test_interpret(self, expression: Expr) -> Any:
-        """
-        A return form for the interpret method
-        This implementation returns the evaluate value for ease of use with pytest
-        Args:
-            expression is the expression we wish to evaluate
-        """
-        return self.evaluate(expression)
+    def execute(self, stmt: Stmt) -> None:
+        stmt.accept(self)
 
-    def evaluate(self, expression: Expr):
+    def evaluate(self, expr: Expr):
         """
         Main logic to evaluate expressions.
         Args:
@@ -61,10 +56,51 @@ class Interpreter(ExprVisitor):
         """
         # We pass in a reference to self
         # and have it retrieve the correct vist method
-        return expression.accept(self)
+        return expr.accept(self)
+    
+    def visit_ExpressionStmt(self, stmt: ExpressionStmt) -> None:
+        self.evaluate(stmt.expr)
+        return None
+    
+    def visit_Print(self, stmt: Print) -> None:
+        value: Any = self.evaluate(stmt.expr)
+        print(value)
+        return None
+
+    def visit_Conditional(self, expr) -> Any:
+        """This method provides the logic to interpret Conditional nodes."""
+        # We evaluate the expression we wish to test
+        condtion: Any = self.evaluate(expr.condition)
+
+        # We test if the condition is true
+        if self.is_truthy(condtion):
+            # If so, we return the left expression
+            return self.evaluate(expr.left)
+        else:
+            # Otherwise we return the left expression
+            return self.evaluate(expr.right)
+
+    def visit_Logical(self, expr) -> Any:
+        """This method provides the logic to interpret Logical nodes."""
+        # We first evaluate the leftmost expression
+        left: Any = self.evaluate(expr.left)
+
+        # This method allows us to short circuit the Logical expression
+        # We test if the TokenType is and OR keyword
+        if expr.operator._type == TokenType.OR:
+            # OR short-circuits when left is truthy
+            if self.is_truthy(left):
+                return left
+        else:
+            # AND short-circuits when left is falsy
+            if not self.is_truthy(left):
+                return left
+
+        # If no short-circuit, evaluate right
+        return self.evaluate(expr.right)
 
     def visit_Grouping(self, expr: Grouping) -> Any:
-        """This functions provides the logice to interpret Groupind nodes."""
+        """This functions provides the logic to interpret Grouping nodes."""
         # We simply evalaute the underlying expression and return it
         return self.evaluate(expr.expr)
 
@@ -152,7 +188,7 @@ class Interpreter(ExprVisitor):
 
     def is_truthy(self, object: Any) -> bool:
         """A helper method to test if the underlying expression is truthy."""
-        if type(object) == None:
+        if object is None:
             return False
         if type(object) == bool:
             return object

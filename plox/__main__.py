@@ -25,7 +25,7 @@ def run_lox(source: str) -> None:
     ast = parser.parse()
     interpreter = Interpreter()
     if ast:
-        interpreter.interpret(ast[0])
+        interpreter.interpret(ast)
 
 
 def run_file(path: Path) -> int:
@@ -35,6 +35,7 @@ def run_file(path: Path) -> int:
         print(e)
         return 1
     return 0
+
 
 def repl() -> int:
     while True:
@@ -54,7 +55,9 @@ def main(argv=None) -> int | None:
         argv = sys.argv[1:]
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--file", "-f", type=Path, default=None, help="Path to Lox file.")
+    parser.add_argument(
+        "--file", "-f", type=Path, default=None, help="Path to Lox file."
+    )
     args = parser.parse_args(argv)
 
     if args.file:
