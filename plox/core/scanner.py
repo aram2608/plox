@@ -1,38 +1,9 @@
 from __future__ import annotations
 from .token import Token, TokenType
+from ..runtime.errors import ScanningError
 
 from string import ascii_letters
 from typing import Any, List, Dict
-
-
-class ScanningError(Exception):
-    def __init__(self, line: int, message: str, value=None):
-        """
-        A custom class to catch errors during scanning of Lox Scripts/REPL input.
-        Args:
-            line is is the line number in which the error occured
-            message is the error message to be printed to the stream
-            value is the literal value associated with any given token
-        """
-        self.line = line
-        self.message = message
-        self.value = value
-        super().__init__(f"[line {line}] Error: {message}")
-
-    def __str__(self):
-        """
-        A custom string representation method for the ScanningError class,
-        If we have a value we return the string with value appended, otherwise
-        we return the line and message only
-        """
-        # Some ASCII escape characters to pretty up the output
-        RED = "\033[91m"
-        RESET = "\033[0m"
-        if self.value is not None:
-            return (
-                f"{RED}[line {self.line}] Error: {self.message} -> {self.value}{RESET}"
-            )
-        return f"{RED}[line {self.line}] Error: {self.message}{RESET}"
 
 
 class Scanner:
@@ -59,7 +30,7 @@ class Scanner:
         self.alpha: str = ascii_letters + "_"
         # We need to save a list of tokens after scanning
         self.tokens: List[Token] = []
-        # We store a map of predefined keywords that can not be identifiers/strings
+        # We store a map of predefined keywords that can not be identifiers
         self.keywords: Dict[str, TokenType] = {
             "and": TokenType.AND,
             "class": TokenType.CLASS,

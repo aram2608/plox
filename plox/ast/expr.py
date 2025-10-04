@@ -2,28 +2,13 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any, TypeVar, TYPE_CHECKING
 from dataclasses import dataclass
+from ..runtime.errors import InvalidAssignment
 
 if TYPE_CHECKING:
     from ..core.token import Token
 
 # Visitor method return type
 R = TypeVar("R")
-
-
-class InvalidAssignment(Exception):
-    """A custom class to handle assignments."""
-
-    def __init__(self, message, value):
-        self.value = value
-        self.message = message
-        super().__init__(f"{message}")
-
-    def __str__(self):
-        """Custom string method for the InvalidAssignment Exception"""
-        # Some ASCII escape characters to pretty up the output
-        RED = "\033[91m"
-        RESET = "\033[0m"
-        return f"{RED}{self.message} at {self.value}{RESET}"
 
 
 class Expr(ABC):
@@ -37,17 +22,33 @@ class Expr(ABC):
         """
         raise NotImplementedError
 
-    def make_assignment(value: Expr) -> None:
+    def make_assignment(self, equals: Token, value: Expr) -> None:
         """
         Default make assignment method. This is a bit of a hack but we are going
         to have the nodes themselves resolve assignments. Only Variable nodes
         are allowed to create them.
         """
-        raise InvalidAssignment("Invalid Assignment Target", value)
+        raise InvalidAssignment("Invalid Assignment Target", equals)
 
 
 class ExprVisitor(ABC):
     """Abstract visitor class for expression."""
+
+    @abstractmethod
+    def visit_Variable(self, expr: Variable) -> R:
+        """
+        Default visit Variable method.
+        Any derived class must override this or an error will be throw
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def visit_Assign(self, expr: Assign) -> R:
+        """
+        Default visit Assign method.
+        Any derived class must override this or an error will be throw
+        """
+        raise NotImplementedError
 
     @abstractmethod
     def visit_Conditional(self, expr: Conditional) -> R:
@@ -98,32 +99,40 @@ class ExprVisitor(ABC):
         raise NotImplementedError
 
 
-# @dataclass
-# class Variable(Expr):
-#     """
+@dataclass
+class Variable(Expr):
+    """
+    Class used to represent Assign expressions. Construced as a dataclass
+    Args:
+        name is the token name of the variable
+    """
 
-#     """
-#     name: Token
+    name: Token
 
-#     def accept(self, visitor):
-#         """Accept method override for the Variable node."""
-#         return visitor.visit_Variable(self)
+    def accept(self, visitor):
+        """Accept method override for the Variable node."""
+        return visitor.visit_Variable(self)
 
-#     def make_assignment(self, value: Expr):
-#         """Make assignment override. We return a new Assign node."""
-#         return Assign(self.name, value)
+    def make_assignment(self, equals: Token, value: Expr):
+        """Make assignment override. We return a new Assign node."""
+        return Assign(self.name, value)
 
-# @dataclass
-# class Assign(Expr):
-#     """
 
-#     """
-#     name: Token
-#     value: Expr
+@dataclass
+class Assign(Expr):
+    """
+    Class used to represent Assign expressions. Construced as a dataclass
+    Args:
+        name is the token name of the variable
+        value is an expression containing the variables value
+    """
 
-#     def accept(self, visitor):
-#         """Accept method override for the Assign node."""
-#         return visitor.visit_Assign(self)
+    name: Token
+    value: Expr
+
+    def accept(self, visitor):
+        """Accept method override for the Assign node."""
+        return visitor.visit_Assign(self)
 
 
 @dataclass

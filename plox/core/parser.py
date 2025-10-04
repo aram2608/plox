@@ -1,27 +1,19 @@
 from __future__ import annotations
 from typing import List
 
-from ..ast.expr import Expr, Logical, Conditional, Grouping, Binary, Unary, Literal
-from ..ast.stmt import Stmt, ExpressionStmt, Print
+from ..ast.expr import (
+    Expr,
+    Variable,
+    Logical,
+    Conditional,
+    Grouping,
+    Binary,
+    Unary,
+    Literal,
+)
+from ..ast.stmt import Stmt, Var, ExpressionStmt, Print
 from .token import Token, TokenType
-
-
-class ParserError(Exception):
-    """A custom class for handling errors at parse time."""
-
-    def __init__(self, token: TokenType, message: str):
-        """
-        To initialize our error class, we pass in the token of interest and an
-        error message.
-        """
-        self.token = token
-        self.message = message
-        super().__init__(f"[Line {token.line}] Error: {message}")
-
-    def __str__(self):
-        RED = "\033[91m"
-        RESET = "\033[0m"
-        return f"{RED}[Line {self.token.line}]: Error: {self.message} after {self.token.lexeme}{RESET}"
+from ..runtime.errors import ParserError, InvalidAssignment
 
 
 class Parser:
@@ -41,18 +33,44 @@ class Parser:
         # While we have not reached the end of the list of tokens, we append
         # the parsed syntax tree to our list
         while not self.is_end():
-            smts.append(self.statement())
+            smts.append(self.declaration())
 
         # After parsing we return our list
         return smts
-    
+
+    def declaration(self):
+        """Method to handle parsing variable declarations."""
+        try:
+            if self.match(TokenType.VAR):
+                return self.var_declaration()
+
+            return self.statement()
+        except ParserError:
+            self.synchronize()
+            return
+
+    def var_declaration(self):
+        """Main logic for creating variables."""
+        # We first consume the identifer and throw an error if we do not encounter one
+        name: Token = self.consume(TokenType.IDENTIFIER, "Expected variable name")
+
+        # Lox allows unitialized variables so we start by giving it no value
+        initializer: Expr = None
+        # If we match an equal token we retrieve the underlying expression
+        if self.match(TokenType.EQUAL):
+            initializer = self.expression()
+
+        # We make sure to close off the statement and return a new Var node
+        self.consume(TokenType.SEMICOLON, "Expected ';' after variable declaration")
+        return Var(name, initializer)
+
     def statement(self):
         """Main method used to parse statements."""
         if self.match(TokenType.PRINT):
             return self.print_stmt()
-        
+
         return self.expression_stmt()
-    
+
     def print_stmt(self):
         """Function to create print statements."""
         # We store the underlying expression
@@ -73,7 +91,27 @@ class Parser:
 
     def expression(self) -> Expr:
         """Main method used to parse expressions."""
-        return self.conditional()
+        return self.assignment()
+
+    def assignment(self):
+        """Method to handle the parsing of assignments."""
+        # We retrive the expression
+        expr: Expr = self.conditional()
+
+        # If we match the equal symbol
+        if self.match(TokenType.EQUAL):
+            # We extract the previous token and create a new value
+            equals: Token = self.previous()
+            value: Expr = self.assignment()
+
+            # We then attempty to make an assignment and catch any errors
+            try:
+                return expr.make_assignment(equals, value)
+            except InvalidAssignment as e:
+                print(e)
+
+        # If no assignment is made we simply return the expression
+        return expr
 
     def conditional(self):
         expr: Expr = self.logical_or()
@@ -254,9 +292,8 @@ class Parser:
         #     # TODO: Add this
         #     ...
 
-        # if self.match(TokenType.IDENTIFIER):
-        #     # TODO: Add variables
-        #     ...
+        if self.match(TokenType.IDENTIFIER):
+            return Variable(self.previous())
 
         # We first match the opening parenethesis '('
         if self.match(TokenType.LEFT_PAREN):
@@ -314,6 +351,33 @@ class Parser:
                 return True
         # Otherwise we return false
         return False
+
+    def synchronize(self):
+        """Method to synchronize parser after a parsing error."""
+        # We advance once
+        self.advance()
+        # We define a set of TokenTypes to iterate over
+        # These are common starters for statements
+        starters = {
+            TokenType.CLASS,
+            TokenType.FUN,
+            TokenType.VAR,
+            TokenType.FOR,
+            TokenType.IF,
+            TokenType.WHILE,
+            TokenType.PRINT,
+            TokenType.RETURN,
+        }
+        # While we are not at the end
+        while not self.is_end():
+            # If the previous type is a semicolon we can return
+            if self.previous()._type == TokenType.SEMICOLON:
+                return
+            # If the current type is in the set of token types we can return
+            if self.peek()._type in starters:
+                return
+            # Otherwise we continue to advance
+            self.advance()
 
     def is_end(self) -> bool:
         """Helper method to test if we are at the end of the tokens"""

@@ -28,7 +28,11 @@ class StmtVisitor(ABC):
     """Abstract visitor class for statements."""
 
     @abstractmethod
-    def visit_ExpressionStmt(self, stmt: Stmt):
+    def visit_Var(self, stmt: Stmt) -> R:
+        raise NotImplementedError
+
+    @abstractmethod
+    def visit_ExpressionStmt(self, stmt: Stmt) -> R:
         """
         Default visit ExpressionStmt method.
         Any derived class must override this or an error will be throw
@@ -36,12 +40,30 @@ class StmtVisitor(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def visit_Print(self, stmt: Stmt):
+    def visit_Print(self, stmt: Stmt) -> R:
         """
         Default visit Print method.
         Any derived class must override this or an error will be throw
         """
         raise NotImplementedError
+
+
+@dataclass
+class Var(Stmt):
+    """
+    Class used to represent Var statements. Constructed as a data class
+    Args:
+        name is the token for the variable name
+        initializer is the expression used to initialize the variable
+    """
+
+    name: Token
+    initializer: Expr
+
+    def accept(self, visitor: StmtVisitor) -> R:
+        """Accept method override for Var statements."""
+        return visitor.visit_Var(self)
+
 
 @dataclass
 class ExpressionStmt(Stmt):
@@ -50,10 +72,12 @@ class ExpressionStmt(Stmt):
     Args:
         expr is the underlying expression to be evaluate
     """
+
     expr: Expr
 
     def accept(self, visitor: StmtVisitor) -> R:
         return visitor.visit_ExpressionStmt(self)
+
 
 @dataclass
 class Print(Stmt):
@@ -62,6 +86,7 @@ class Print(Stmt):
     Args:
         expr is the underlying expression to be printed
     """
+
     expr: Expr
 
     def accept(self, visitor):

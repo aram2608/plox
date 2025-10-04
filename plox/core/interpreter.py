@@ -1,35 +1,25 @@
 from __future__ import annotations
-from ..ast.expr import ExprVisitor, Expr, Binary, Unary, Literal, Grouping
-from ..ast.stmt import StmtVisitor, Stmt, ExpressionStmt, Print
+from ..ast.expr import (
+    ExprVisitor,
+    Expr,
+    Assign,
+    Variable,
+    Binary,
+    Unary,
+    Literal,
+    Grouping,
+)
+from ..ast.stmt import StmtVisitor, Stmt, Var, ExpressionStmt, Print
 from .token import Token, TokenType
+from ..runtime.errors import LoxRunTimeError
+from ..runtime.environment import Environment
 
-from typing import TYPE_CHECKING, TypeVar, Any
-
-
-class LoxRunTimeError(Exception):
-    def __init__(self, token: Token, message: str):
-        """
-        A custom class to catch errors during interpretaton of Lox Scripts/REPL input.
-        Args:
-            token is the problematic token
-            message is the error message to be printed to the stream
-        """
-        self.token = token
-        self.message = message
-        super().__init__(f"Error: {message} \n {token.lexeme}")
-
-    def __str__(self):
-        """
-        A custom string representation method for the RunTimeError class.
-        """
-        # Some ASCII escape characters to pretty up the output
-        RED = "\033[91m"
-        RESET = "\033[0m"
-        return f"{RED}Error: {self.message}\nOperator: {self.token.lexeme}{RESET}"
+from typing import Any
 
 
 class Interpreter(ExprVisitor, StmtVisitor):
     def __init__(self):
+        self.environment = Environment()
         super().__init__()
 
     def interpret(self, stmts: list[Stmt]) -> None:
@@ -41,7 +31,8 @@ class Interpreter(ExprVisitor, StmtVisitor):
         """
         try:
             for stmt in stmts:
-                self.execute(stmt)
+                if stmt is not None:
+                    self.execute(stmt)
         except LoxRunTimeError as e:
             print(e)
 
@@ -57,15 +48,42 @@ class Interpreter(ExprVisitor, StmtVisitor):
         # We pass in a reference to self
         # and have it retrieve the correct vist method
         return expr.accept(self)
-    
+
+    def visit_Assign(self, expr: Assign):
+        """Method to visit Assign node."""
+        # We evalute the underlying value
+        value: Any = self.evaluate(expr.value)
+        # We then assign it to the environment
+        self.environment.assign(expr.name, expr.value)
+        return value
+
+    def visit_Variable(self, expr: Variable):
+        """Method to return variables from the environment."""
+        return self.environment.get(expr.name)
+
+    def visit_Var(self, stmt: Var) -> None:
+        """Method to visit variables."""
+        # We first initialize and empty value
+        value: Any = None
+
+        # If our object is initialized we evaluate the underlying expression
+        # and store it
+        if stmt.initializer != None:
+            value = self.evaluate(stmt.initializer)
+
+        # We can then define it in our environment
+        self.environment.define(stmt.name.lexeme, value)
+
     def visit_ExpressionStmt(self, stmt: ExpressionStmt) -> None:
+        """Method to visit expression statements."""
+        # We simply evaluate the expression and return None
         self.evaluate(stmt.expr)
-        return None
-    
+
     def visit_Print(self, stmt: Print) -> None:
+        """Method to visit print statements."""
+        # Quite simply we evalute the underlying expression and print to iostream
         value: Any = self.evaluate(stmt.expr)
         print(value)
-        return None
 
     def visit_Conditional(self, expr) -> Any:
         """This method provides the logic to interpret Conditional nodes."""

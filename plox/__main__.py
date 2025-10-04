@@ -38,9 +38,10 @@ def run_file(path: Path) -> int:
 
 
 def repl() -> int:
+    QUIT_CODES = ["exit()", "exit", "quit"]
     while True:
-        source = input("> ")
-        if source == "exit":
+        source = input(">>> ")
+        if source in QUIT_CODES:
             break
         try:
             run_lox(source=source)
