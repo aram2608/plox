@@ -1,4 +1,3 @@
-from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any, TypeVar, TYPE_CHECKING
 from dataclasses import dataclass
@@ -15,14 +14,14 @@ class Expr(ABC):
     """Abstract class for expressions."""
 
     @abstractmethod
-    def accept(self, visitor: ExprVisitor[R]) -> R:
+    def accept(self, visitor: ExprVisitor[R]) -> R:  # type: ignore
         """
         Default accept method.
         Any derived classes must override this or an error will be thrown.
         """
         raise NotImplementedError
 
-    def make_assignment(self, equals: Token, value: Expr) -> None:
+    def make_assignment(self, equals: Token, value: Expr) -> None:  # type: ignore
         """
         Default make assignment method. This is a bit of a hack but we are going
         to have the nodes themselves resolve assignments. Only Variable nodes
@@ -35,7 +34,7 @@ class ExprVisitor(ABC):
     """Abstract visitor class for expression."""
 
     @abstractmethod
-    def visit_Variable(self, expr: Variable) -> R:
+    def visit_Variable(self, expr: Variable) -> R:  # type: ignore
         """
         Default visit Variable method.
         Any derived class must override this or an error will be throw
@@ -43,7 +42,7 @@ class ExprVisitor(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def visit_Assign(self, expr: Assign) -> R:
+    def visit_Assign(self, expr: Assign) -> R:  # type: ignore
         """
         Default visit Assign method.
         Any derived class must override this or an error will be throw
@@ -51,7 +50,7 @@ class ExprVisitor(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def visit_Conditional(self, expr: Conditional) -> R:
+    def visit_Conditional(self, expr: Conditional) -> R:  # type: ignore
         """
         Default visit Condtional method.
         Any derived class must override this or an error will be throw
@@ -59,7 +58,7 @@ class ExprVisitor(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def visit_Logical(self, expr: Logical) -> R:
+    def visit_Logical(self, expr: Logical) -> R:  # type: ignore
         """
         Default visit Logical method.
         Any derived class must override this or an error will be throw
@@ -67,7 +66,7 @@ class ExprVisitor(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def visit_Grouping(self, expr: Grouping) -> R:
+    def visit_Grouping(self, expr: Grouping) -> R:  # type: ignore
         """
         Default visit Grouping method.
         Any derived classes must override this or an error will be thrown.
@@ -75,7 +74,7 @@ class ExprVisitor(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def visit_Binary(self, expr: Binary) -> R:
+    def visit_Binary(self, expr: Binary) -> R:  # type: ignore
         """
         Default visit Binary method.
         Any derived classes must override this or an error will be thrown.
@@ -83,7 +82,7 @@ class ExprVisitor(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def visit_Unary(self, expr: Unary) -> R:
+    def visit_Unary(self, expr: Unary) -> R:  # type: ignore
         """
         Default visit Unary method.
         Any derived classes must override this or an error will be thrown.
@@ -91,7 +90,7 @@ class ExprVisitor(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def visit_Literal(self, expr: Literal) -> R:
+    def visit_Literal(self, expr: Literal) -> R:  # type: ignore
         """
         Default visit Literal method.
         Any derived classes must override this or an error will be thrown.

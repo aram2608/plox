@@ -9,7 +9,7 @@ description = "Python implementation of Rob Nystrom's jlox."
 authors = [
   { name = "Javier Arambula" }
 ]
-requires-python = ">=3.13"
+requires-python = ">=3.14"
 dependencies = [
   "pytest",
 ]

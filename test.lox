@@ -1,0 +1,2 @@
+var lox = "lox";
+print lox;

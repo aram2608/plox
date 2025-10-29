@@ -20,7 +20,7 @@ class Environment:
             return self.values[name.lexeme]
 
         raise UndefinedVariable(name, "Undefined variable")
-    
+
     def assign(self, name: Token, value: Any) -> None:
         """Method to change a variables stored value."""
         if name.lexeme in self.values:

@@ -1,4 +1,3 @@
-from __future__ import annotations
 from .token import Token, TokenType
 from ..runtime.errors import ScanningError
 

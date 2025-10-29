@@ -1,4 +1,3 @@
-from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any, TypeVar, TYPE_CHECKING
 from dataclasses import dataclass
@@ -16,7 +15,7 @@ class Stmt(ABC):
     """Abstract class for statements."""
 
     @abstractmethod
-    def accept(self, visitor: StmtVisitor):
+    def accept(self, visitor: StmtVisitor):  # type: ignore
         """
         Default accept method.
         Any derived classes must override this or an error will be thrown.

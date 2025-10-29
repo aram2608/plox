@@ -89,7 +89,8 @@ class LoxRunTimeError(Exception):
         RED = "\033[91m"
         RESET = "\033[0m"
         return f"{RED}Error: {self.message}\nOperator: {self.token.lexeme}{RESET}"
-    
+
+
 class UndefinedVariable(Exception):
     def __init__(self, token: Token, message: str):
         """
