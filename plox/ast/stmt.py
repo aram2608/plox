@@ -27,6 +27,14 @@ class StmtVisitor(ABC):
     """Abstract visitor class for statements."""
 
     @abstractmethod
+    def visit_IfStmt(self, stmt: IfStmt) -> R:
+        """
+        Default visit IfStmt method.
+        Any derived class must override this or an error wil be thrown.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
     def visit_Block(self, stmt: Block) -> R:
         """
         Default visit Block method.
@@ -60,6 +68,25 @@ class StmtVisitor(ABC):
 
 
 @dataclass
+class IfStmt(Stmt):
+    """
+    Class used to represent If statements. Constructed as a data class
+    Args:
+        condition is the underlying condition we test for
+        then_branch is the branch executed if the condition is true
+        else_branch is the branch executed if the conditon is false
+    """
+
+    condition: Expr
+    then_branch: Stmt
+    else_branch: Stmt | None
+
+    def accept(self, visitor: StmtVisitor):
+        """Accept method override for Ifstmts."""
+        return visitor.visit_IfStmt(self)
+
+
+@dataclass
 class Block(Stmt):
     """
     Class used to represent Block statements. Constructed as a data class
@@ -70,6 +97,7 @@ class Block(Stmt):
     stmts: List[Stmt]
 
     def accept(self, visitor: StmtVisitor) -> R:
+        """Accept method override for Block stmts."""
         return visitor.visit_Block(self)
 
 

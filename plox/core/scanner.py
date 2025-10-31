@@ -75,8 +75,6 @@ class Scanner:
         # We first advance forward, returning the character
         char: str = self.advance()
         # We then match the character against all our predefined token types
-        # We could have used an if/elif/else statement but match is a bit cleaner
-        # and more in line with Rob's jlox implementation
         match char:
             # We increment our line count on new lines
             case "\n":

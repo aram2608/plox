@@ -86,3 +86,7 @@ def test_conditional():
     assert run_test('print (false) ? 5 : 4;') == '4.0\n'
     assert run_test('print (1 == 1) ? 10 : 4;') == '10.0\n'
     assert run_test('print (110 >= 110) ? "hello" : "world";') == "hello\n"
+
+def test_if():
+    assert run_test('if (1 > 0) print 5;') == '5.0\n'
+    assert run_test('if (1 < 0) print 5; else print 3;') == '3.0\n'

@@ -35,7 +35,7 @@ class ParserError(Exception):
     def __str__(self):
         RED = "\033[91m"
         RESET = "\033[0m"
-        return f"{RED}[line {self.token.line}]: Error: {self.message} after {self.token.lexeme}{RESET}"
+        return f"{RED}[line {self.token.line}]: Error: {self.message} \ngot -> {self.token.lexeme}{RESET}"
 
 
 class ScanningError(Exception):

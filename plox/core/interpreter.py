@@ -8,7 +8,7 @@ from ..ast.expr import (
     Literal,
     Grouping,
 )
-from ..ast.stmt import StmtVisitor, Stmt, Var, ExpressionStmt, Print, Block
+from ..ast.stmt import StmtVisitor, Stmt, Var, ExpressionStmt, Print, Block, IfStmt
 from .token import Token, TokenType
 from ..runtime.errors import LoxRunTimeError
 from ..runtime.environment import Environment
@@ -80,7 +80,16 @@ class Interpreter(ExprVisitor, StmtVisitor):
         # and have it retrieve the correct expression vist method
         return expr.accept(self)
 
-    def visit_Block(self, stmt: Block):
+    def visit_IfStmt(self, stmt: IfStmt) -> None:
+        # We check if the underlying conditon is truthy
+        if self.is_truthy(self.evaluate(stmt.condition)):
+            # If so we execute
+            self.execute(stmt.then_branch)
+        # Otherwise we run the else clause if it is not empty
+        elif stmt.else_branch is not None:
+            self.execute(stmt.else_branch)
+
+    def visit_Block(self, stmt: Block) -> None:
         """Method to visit block statements."""
         # We offload all the work to this helper method
         # We pass in the underlying statements and create a new
@@ -98,7 +107,7 @@ class Interpreter(ExprVisitor, StmtVisitor):
         value: Any = self.evaluate(stmt.expr)
         print(value)
 
-    def visit_Assign(self, expr: Assign):
+    def visit_Assign(self, expr: Assign) -> Any:
         """Method to visit Assign node."""
         # We evalute the underlying value
         value: Any = self.evaluate(expr.value)

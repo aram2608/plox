@@ -42,7 +42,6 @@ def run_lox(source: str) -> None:
 def run_file(path: Path) -> int:
     """Method to wrap the run_lox function so it works with a provided file"""
     # In a try block we attempt to interpret the provided source code
-    run_lox(source=slurp_file(path))
     try:
         run_lox(source=slurp_file(path))
     # If we catch an error we return a 1 exit code

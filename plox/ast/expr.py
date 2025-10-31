@@ -14,14 +14,14 @@ class Expr(ABC):
     """Abstract class for expressions."""
 
     @abstractmethod
-    def accept(self, visitor: ExprVisitor[R]) -> R:  # type: ignore
+    def accept(self, visitor: ExprVisitor[R]) -> R:
         """
         Default accept method.
         Any derived classes must override this or an error will be thrown.
         """
         raise NotImplementedError
 
-    def make_assignment(self, equals: Token, value: Expr) -> None:  # type: ignore
+    def make_assignment(self, equals: Token, value: Expr) -> None:
         """
         Default make assignment method. This is a bit of a hack but we are going
         to have the nodes themselves resolve assignments. Only Variable nodes
@@ -34,7 +34,7 @@ class ExprVisitor(ABC):
     """Abstract visitor class for expression."""
 
     @abstractmethod
-    def visit_Variable(self, expr: Variable) -> R:  # type: ignore
+    def visit_Variable(self, expr: Variable) -> R:
         """
         Default visit Variable method.
         Any derived class must override this or an error will be throw
@@ -42,7 +42,7 @@ class ExprVisitor(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def visit_Assign(self, expr: Assign) -> R:  # type: ignore
+    def visit_Assign(self, expr: Assign) -> R:
         """
         Default visit Assign method.
         Any derived class must override this or an error will be throw
@@ -50,7 +50,7 @@ class ExprVisitor(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def visit_Conditional(self, expr: Conditional) -> R:  # type: ignore
+    def visit_Conditional(self, expr: Conditional) -> R:
         """
         Default visit Condtional method.
         Any derived class must override this or an error will be throw
@@ -58,7 +58,7 @@ class ExprVisitor(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def visit_Logical(self, expr: Logical) -> R:  # type: ignore
+    def visit_Logical(self, expr: Logical) -> R:
         """
         Default visit Logical method.
         Any derived class must override this or an error will be throw
@@ -66,7 +66,7 @@ class ExprVisitor(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def visit_Grouping(self, expr: Grouping) -> R:  # type: ignore
+    def visit_Grouping(self, expr: Grouping) -> R:
         """
         Default visit Grouping method.
         Any derived classes must override this or an error will be thrown.
@@ -74,7 +74,7 @@ class ExprVisitor(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def visit_Binary(self, expr: Binary) -> R:  # type: ignore
+    def visit_Binary(self, expr: Binary) -> R:
         """
         Default visit Binary method.
         Any derived classes must override this or an error will be thrown.
@@ -82,7 +82,7 @@ class ExprVisitor(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def visit_Unary(self, expr: Unary) -> R:  # type: ignore
+    def visit_Unary(self, expr: Unary) -> R:
         """
         Default visit Unary method.
         Any derived classes must override this or an error will be thrown.
@@ -90,7 +90,7 @@ class ExprVisitor(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def visit_Literal(self, expr: Literal) -> R:  # type: ignore
+    def visit_Literal(self, expr: Literal) -> R:
         """
         Default visit Literal method.
         Any derived classes must override this or an error will be thrown.

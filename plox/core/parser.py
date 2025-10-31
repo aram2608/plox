@@ -10,7 +10,7 @@ from ..ast.expr import (
     Unary,
     Literal,
 )
-from ..ast.stmt import Stmt, Var, ExpressionStmt, Print, Block
+from ..ast.stmt import Stmt, Var, ExpressionStmt, Print, Block, IfStmt
 from .token import Token, TokenType
 from ..runtime.errors import ParserError, InvalidAssignment
 
@@ -28,14 +28,14 @@ class Parser:
         This function is the main logic for creating our abstract syntax tree.
         """
         # We initialize an empty list for our expressions
-        smts = []
+        stmts = []
         # While we have not reached the end of the list of tokens, we append
         # the parsed syntax tree to our list
         while not self.is_end():
-            smts.append(self.declaration())
+            stmts.append(self.declaration())
 
         # After parsing we return our list
-        return smts
+        return stmts
 
     def declaration(self):
         """Method to handle parsing variable declarations."""
@@ -44,7 +44,8 @@ class Parser:
                 return self.var_declaration()
 
             return self.statement()
-        except ParserError:
+        except ParserError as e:
+            print(e)
             self.synchronize()
             return
 
@@ -66,6 +67,9 @@ class Parser:
     def statement(self):
         """Main method used to parse statements."""
         # We catch print statements
+        if self.match(TokenType.IF):
+            return self.if_stmt()
+
         if self.match(TokenType.PRINT):
             return self.print_stmt()
 
@@ -75,6 +79,24 @@ class Parser:
 
         # If nothing is matched skip into an expression statement
         return self.expression_stmt()
+
+    def if_stmt(self):
+        """Helper method to parse if statements"""
+        # We need to ensure that the condition is preceded by a paren
+        self.consume(TokenType.LEFT_PAREN, "Expected '(' after 'if'")
+        # We can then extract the underlying expression
+        condition: Expr = self.expression()
+        # We check for the closing paren
+        self.consume(TokenType.RIGHT_PAREN, "Expected ')' after if condition")
+
+        # We can now match our then and else statements
+        then_branch: Stmt = self.statement()
+        else_branch: Stmt = None
+        # We first check for an else keyword
+        if self.match(TokenType.ELSE):
+            else_branch = self.statement()
+        # We then return the IfStmt node
+        return IfStmt(condition, then_branch, else_branch)
 
     def print_stmt(self):
         """Function to create print statements."""
