@@ -17,16 +17,21 @@ from typing import Any
 
 
 class Interpreter(ExprVisitor, StmtVisitor):
+    """Interpreter class for interpreting Lox programs."""
+
     def __init__(self):
+        """
+        We initialize the Interpreter with a base environment for storing Lox
+        objects.
+        """
         self.environment = Environment()
         super().__init__()
 
     def interpret(self, stmts: list[Stmt]) -> None:
         """
-        An interactive form of the interpret method.
-        This implementation prints the evaulated expression to the iostream.
+        Method to interpret Lox statements
         Args:
-            expression is the expression we wish to evaluate
+            stmts is the list of statements we wish to evaluate
         """
         try:
             for stmt in stmts:
@@ -36,6 +41,13 @@ class Interpreter(ExprVisitor, StmtVisitor):
             print(e)
 
     def execute(self, stmt: Stmt) -> None:
+        """
+        Main logic to execute statements.
+        Args:
+            stmt is the AST node we wish to execute
+        """
+        # We pass in a reference to self
+        # and have it retrieve the correct statement visitor method
         stmt.accept(self)
 
     def evaluate(self, expr: Expr):
@@ -45,7 +57,7 @@ class Interpreter(ExprVisitor, StmtVisitor):
             expression is the AST node we wish to evaluate
         """
         # We pass in a reference to self
-        # and have it retrieve the correct vist method
+        # and have it retrieve the correct expression vist method
         return expr.accept(self)
 
     def visit_Assign(self, expr: Assign):
@@ -53,6 +65,7 @@ class Interpreter(ExprVisitor, StmtVisitor):
         # We evalute the underlying value
         value: Any = self.evaluate(expr.value)
         # We then assign it to the environment
+        # Error catching is handled by the environment itself
         self.environment.assign(expr.name, expr.value)
         return value
 
@@ -62,11 +75,11 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
     def visit_Var(self, stmt: Var) -> None:
         """Method to visit variables."""
-        # We first initialize and empty value
+        # We first initialize an empty value
         value: Any = None
 
         # If our object is initialized we evaluate the underlying expression
-        # and store it
+        # and store it in a variable
         if stmt.initializer != None:
             value = self.evaluate(stmt.initializer)
 
