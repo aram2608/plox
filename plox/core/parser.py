@@ -10,7 +10,7 @@ from ..ast.expr import (
     Unary,
     Literal,
 )
-from ..ast.stmt import Stmt, Var, ExpressionStmt, Print
+from ..ast.stmt import Stmt, Var, ExpressionStmt, Print, Block
 from .token import Token, TokenType
 from ..runtime.errors import ParserError, InvalidAssignment
 
@@ -65,9 +65,15 @@ class Parser:
 
     def statement(self):
         """Main method used to parse statements."""
+        # We catch print statements
         if self.match(TokenType.PRINT):
             return self.print_stmt()
 
+        # We catch any left braces '{'
+        if self.match(TokenType.LEFT_BRACE):
+            return self.block()
+
+        # If nothing is matched skip into an expression statement
         return self.expression_stmt()
 
     def print_stmt(self):
@@ -79,7 +85,7 @@ class Parser:
         # We then return the Print Stmt
         return Print(value)
 
-    def expression_stmt(self):
+    def expression_stmt(self) -> ExpressionStmt:
         """Function to create expression statements."""
         # We store the underlying expression
         value: Expr = self.expression()
@@ -87,6 +93,21 @@ class Parser:
         self.consume(TokenType.SEMICOLON, "Expected ';' after value")
         # We then return the Expression Stmt
         return ExpressionStmt(value)
+
+    def block(self) -> List[Stmt]:
+        """Functon to parse block statements."""
+        # We initialize a list to store statements
+        statements: List[Stmt] = []
+
+        # We add statements for as long as we don't reach the end of the file
+        # and don't match a right brace '}'
+        while not self.check(TokenType.RIGHT_BRACE) and not self.is_end():
+            statements.append(self.declaration())
+
+        # Every block needs to be finished by a right brace
+        self.consume(TokenType.RIGHT_BRACE, "Expected a '}' after a block")
+        # We can now return the statements
+        return Block(statements)
 
     def expression(self) -> Expr:
         """Main method used to parse expressions."""

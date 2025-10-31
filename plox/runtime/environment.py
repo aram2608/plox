@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 class Environment:
     """Environment class to store Lox objects."""
 
-    def __init__(self, enclosing: None | Environment = None):
+    def __init__(self, enclosing: Environment | None = None):
         """
         We initialize every environment with a dictionary to contain our Lox
         objects.
@@ -32,6 +32,11 @@ class Environment:
         if name.lexeme in self.values:
             # If found we simply return
             return self.values[name.lexeme]
+
+        # If we have an enclosing environment we need to check for the variable
+        if self.enclosing is not None:
+            return self.enclosing.get(name)
+
         # Otherwise we throw an error
         raise UndefinedVariable(name, "Undefined variable")
 
@@ -43,5 +48,12 @@ class Environment:
             self.values[name.lexeme] = value
             # We make sure to return out or else we fall into the exception
             return
+
+        # We do a lookup for the value in the enclosing scope if it exists
+        if self.enclosing is not None:
+            self.assign(name, value)
+            # We need to return out so we don't fall into the exception
+            return
+
         # If the variable is not defined we throw an error
         raise UndefinedVariable(name, "Undefined variable")

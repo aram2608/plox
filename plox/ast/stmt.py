@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, TypeVar, TYPE_CHECKING
+from typing import List, TypeVar, TYPE_CHECKING
 from dataclasses import dataclass
 
 from .expr import Expr
@@ -27,24 +27,50 @@ class StmtVisitor(ABC):
     """Abstract visitor class for statements."""
 
     @abstractmethod
-    def visit_Var(self, stmt: Stmt) -> R:
+    def visit_Block(self, stmt: Block) -> R:
+        """
+        Default visit Block method.
+        Any derived class must override this or an error wil be thrown.
+        """
         raise NotImplementedError
 
     @abstractmethod
-    def visit_ExpressionStmt(self, stmt: Stmt) -> R:
+    def visit_Var(self, stmt: Var) -> R:
+        """
+        Default visit VarStmt method.
+        Any derived class must override this or an error wil be thrown.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def visit_ExpressionStmt(self, stmt: ExpressionStmt) -> R:
         """
         Default visit ExpressionStmt method.
-        Any derived class must override this or an error will be throw
+        Any derived class must override this or an error will be thrown.
         """
         raise NotImplementedError
 
     @abstractmethod
-    def visit_Print(self, stmt: Stmt) -> R:
+    def visit_Print(self, stmt: Print) -> R:
         """
         Default visit Print method.
-        Any derived class must override this or an error will be throw
+        Any derived class must override this or an error will be thrown.
         """
         raise NotImplementedError
+
+
+@dataclass
+class Block(Stmt):
+    """
+    Class used to represent Block statements. Constructed as a data class
+    Args:
+        stmts is a list of other statements
+    """
+
+    stmts: List[Stmt]
+
+    def accept(self, visitor: StmtVisitor) -> R:
+        return visitor.visit_Block(self)
 
 
 @dataclass
@@ -88,5 +114,5 @@ class Print(Stmt):
 
     expr: Expr
 
-    def accept(self, visitor):
+    def accept(self, visitor: StmtVisitor) -> R:
         return visitor.visit_Print(self)

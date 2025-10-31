@@ -8,12 +8,12 @@ from ..ast.expr import (
     Literal,
     Grouping,
 )
-from ..ast.stmt import StmtVisitor, Stmt, Var, ExpressionStmt, Print
+from ..ast.stmt import StmtVisitor, Stmt, Var, ExpressionStmt, Print, Block
 from .token import Token, TokenType
 from ..runtime.errors import LoxRunTimeError
 from ..runtime.environment import Environment
 
-from typing import Any
+from typing import Any, List
 
 
 class Interpreter(ExprVisitor, StmtVisitor):
@@ -27,7 +27,7 @@ class Interpreter(ExprVisitor, StmtVisitor):
         self.environment = Environment()
         super().__init__()
 
-    def interpret(self, stmts: list[Stmt]) -> None:
+    def interpret(self, stmts: List[Stmt]) -> None:
         """
         Method to interpret Lox statements
         Args:
@@ -50,6 +50,26 @@ class Interpreter(ExprVisitor, StmtVisitor):
         # and have it retrieve the correct statement visitor method
         stmt.accept(self)
 
+    def execute_block(self, stmts: List[Stmt], environment: Environment):
+        """
+        Helper method to interpret block statements.
+        Args:
+            stmts is the list of statement in the block node
+            environment is the new environment created from the previous enclosing env
+        """
+        # We store our previous environment
+        previous = self.environment
+        # We then try to interpret each statement
+        try:
+            # We override the current instance's environment with the environment
+            # that was passed in, then attempt to loop over the list and execute
+            self.environment = environment
+            for stmt in stmts:
+                self.execute(stmt)
+        # At the end, we reassign our environment to the original
+        finally:
+            self.environment = previous
+
     def evaluate(self, expr: Expr):
         """
         Main logic to evaluate expressions.
@@ -59,6 +79,24 @@ class Interpreter(ExprVisitor, StmtVisitor):
         # We pass in a reference to self
         # and have it retrieve the correct expression vist method
         return expr.accept(self)
+
+    def visit_Block(self, stmt: Block):
+        """Method to visit block statements."""
+        # We offload all the work to this helper method
+        # We pass in the underlying statements and create a new
+        # environment with the current environment as the enclosing scope
+        self.execute_block(stmt.stmts, Environment(self.environment))
+
+    def visit_ExpressionStmt(self, stmt: ExpressionStmt) -> None:
+        """Method to visit expression statements."""
+        # We simply evaluate the expression and return None
+        self.evaluate(stmt.expr)
+
+    def visit_Print(self, stmt: Print) -> None:
+        """Method to visit print statements."""
+        # Quite simply we evalute the underlying expression and print to iostream
+        value: Any = self.evaluate(stmt.expr)
+        print(value)
 
     def visit_Assign(self, expr: Assign):
         """Method to visit Assign node."""
@@ -85,17 +123,6 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
         # We can then define it in our environment
         self.environment.define(stmt.name.lexeme, value)
-
-    def visit_ExpressionStmt(self, stmt: ExpressionStmt) -> None:
-        """Method to visit expression statements."""
-        # We simply evaluate the expression and return None
-        self.evaluate(stmt.expr)
-
-    def visit_Print(self, stmt: Print) -> None:
-        """Method to visit print statements."""
-        # Quite simply we evalute the underlying expression and print to iostream
-        value: Any = self.evaluate(stmt.expr)
-        print(value)
 
     def visit_Conditional(self, expr) -> Any:
         """This method provides the logic to interpret Conditional nodes."""
