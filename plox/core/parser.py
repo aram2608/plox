@@ -10,7 +10,7 @@ from ..ast.expr import (
     Unary,
     Literal,
 )
-from ..ast.stmt import Stmt, Var, ExpressionStmt, Print, Block, IfStmt
+from ..ast.stmt import Stmt, Var, ExpressionStmt, Print, Block, IfStmt, WhileStmt
 from .token import Token, TokenType
 from ..runtime.errors import ParserError, InvalidAssignment
 
@@ -66,9 +66,14 @@ class Parser:
 
     def statement(self):
         """Main method used to parse statements."""
-        # We catch print statements
+        if self.match(TokenType.FOR):
+            return self.for_stmt()
+        
         if self.match(TokenType.IF):
             return self.if_stmt()
+
+        if self.match(TokenType.WHILE):
+            return self.while_stmt()
 
         if self.match(TokenType.PRINT):
             return self.print_stmt()
@@ -79,8 +84,52 @@ class Parser:
 
         # If nothing is matched skip into an expression statement
         return self.expression_stmt()
+    
+    def for_stmt(self) -> WhileStmt | Block:
+        self.consume(TokenType.LEFT_PAREN, "Expected a '(' after 'for'")
 
-    def if_stmt(self):
+        if self.match(TokenType.SEMICOLON):
+            initializer = None
+        elif self.match(TokenType.VAR):
+            initializer = self.var_declaration()
+        else:
+            initializer = self.expression_stmt()
+
+        condition: Expr | None = None
+        if not self.check(TokenType.SEMICOLON):
+            condition = self.expression()
+        self.consume(TokenType.SEMICOLON, "Expected a ';' after the condition") 
+
+        increment: Expr | None = None
+        if not self.check(TokenType.RIGHT_PAREN):
+            increment = self.expression()
+        self.consume(TokenType.RIGHT_PAREN, "Expected ')' after for clauses")
+        body: Stmt = self.statement()
+
+        if increment is not None:
+            body = Block([body, ExpressionStmt(increment)])
+
+        if condition is None:
+            condition = Literal(True)
+        body = WhileStmt(condition, body)
+
+        if initializer is not None:
+            body = Block([initializer, body])
+        return body
+
+    def while_stmt(self) -> WhileStmt:
+        """Helper method to parse while statements."""
+        # We need to ensure the condition is preceded by a paren
+        self.consume(TokenType.LEFT_PAREN, "Expected '(' after 'while'")
+        # We then extrct the underlying condition
+        condition: Expr = self.expression()
+        # Condtions must always be followed by a closing paren
+        self.consume(TokenType.RIGHT_PAREN, "Expected ')' after the condition")
+        # We can then get the body statement and return a new While node
+        body: Stmt = self.statement()
+        return WhileStmt(condition, body)
+
+    def if_stmt(self) -> IfStmt:
         """Helper method to parse if statements"""
         # We need to ensure that the condition is preceded by a paren
         self.consume(TokenType.LEFT_PAREN, "Expected '(' after 'if'")

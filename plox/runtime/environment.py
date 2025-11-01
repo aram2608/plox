@@ -51,7 +51,7 @@ class Environment:
 
         # We do a lookup for the value in the enclosing scope if it exists
         if self.enclosing is not None:
-            self.assign(name, value)
+            self.enclosing.assign(name, value)
             # We need to return out so we don't fall into the exception
             return
 

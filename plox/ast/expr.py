@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, TypeVar, TYPE_CHECKING
+from typing import Any, TypeVar, TYPE_CHECKING, Generic
 from dataclasses import dataclass
 from ..runtime.errors import InvalidAssignment
 
@@ -30,7 +30,7 @@ class Expr(ABC):
         raise InvalidAssignment("Invalid Assignment Target", equals)
 
 
-class ExprVisitor(ABC):
+class ExprVisitor(ABC, Generic[R]):
     """Abstract visitor class for expression."""
 
     @abstractmethod
@@ -108,11 +108,11 @@ class Variable(Expr):
 
     name: Token
 
-    def accept(self, visitor):
+    def accept(self, visitor: ExprVisitor[R]) -> R:
         """Accept method override for the Variable node."""
         return visitor.visit_Variable(self)
 
-    def make_assignment(self, equals: Token, value: Expr):
+    def make_assignment(self, equals: Token, value: Expr) -> Assign[Token, Expr]:
         """Make assignment override. We return a new Assign node."""
         return Assign(self.name, value)
 
@@ -154,7 +154,7 @@ class Conditional(Expr):
     left: Expr
     right: Expr
 
-    def accept(self, visitor: ExprVisitor) -> R:
+    def accept(self, visitor: ExprVisitor[R]) -> R:
         """Accept method override for the Conditional node."""
         return visitor.visit_Conditional(self)
 
@@ -174,7 +174,7 @@ class Logical(Expr):
     operator: Token
     right: Expr
 
-    def accept(self, visitor: ExprVisitor) -> R:
+    def accept(self, visitor: ExprVisitor[R]) -> R:
         """Accept method override for the Logical node."""
         return visitor.visit_Logical(self)
 
@@ -190,7 +190,7 @@ class Grouping(Expr):
 
     expr: Expr
 
-    def accept(self, visitor: ExprVisitor) -> R:
+    def accept(self, visitor: ExprVisitor[R]) -> R:
         """Accept method override for the Grouping node."""
         return visitor.visit_Grouping(self)
 
@@ -210,7 +210,7 @@ class Binary(Expr):
     operator: Token
     right: Expr
 
-    def accept(self, visitor: ExprVisitor) -> R:
+    def accept(self, visitor: ExprVisitor[R]) -> R:
         """Accept method override for the Binary node."""
         return visitor.visit_Binary(self)
 
@@ -229,7 +229,7 @@ class Unary(Expr):
     operator: Token
     right: Expr
 
-    def accept(self, visitor: ExprVisitor) -> R:
+    def accept(self, visitor: ExprVisitor[R]) -> R:
         """Accept method override for the Unary node."""
         return visitor.visit_Unary(self)
 
@@ -244,6 +244,6 @@ class Literal(Expr):
 
     value: Any
 
-    def accept(self, visitor: ExprVisitor) -> R:
+    def accept(self, visitor: ExprVisitor[R]) -> R:
         """Accept method override for the Literal node."""
         return visitor.visit_Literal(self)

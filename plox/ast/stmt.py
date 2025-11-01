@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, TypeVar, TYPE_CHECKING
+from typing import List, TypeVar, TYPE_CHECKING, Generic
 from dataclasses import dataclass
 
 from .expr import Expr
@@ -15,7 +15,7 @@ class Stmt(ABC):
     """Abstract class for statements."""
 
     @abstractmethod
-    def accept(self, visitor: StmtVisitor):  # type: ignore
+    def accept(self, visitor: StmtVisitor[R]) -> R:
         """
         Default accept method.
         Any derived classes must override this or an error will be thrown.
@@ -23,8 +23,12 @@ class Stmt(ABC):
         raise NotImplementedError
 
 
-class StmtVisitor(ABC):
+class StmtVisitor(ABC, Generic[R]):
     """Abstract visitor class for statements."""
+
+    @abstractmethod
+    def visit_WhileStmt(self, stmt: WhileStmt) -> R:
+        raise NotImplementedError
 
     @abstractmethod
     def visit_IfStmt(self, stmt: IfStmt) -> R:
@@ -68,6 +72,23 @@ class StmtVisitor(ABC):
 
 
 @dataclass
+class WhileStmt(Stmt):
+    """
+    Class used to represent While statements. Constructed as a data class
+    Args:
+        condition is the underlying condition we test for
+        stmt is the statement we execute given the condition is true
+    """
+
+    condition: Expr
+    stmt: Stmt
+
+    def accept(self, visitor: StmtVisitor[R]) -> R:
+        """Accept method override for Whilestmts."""
+        return visitor.visit_WhileStmt(self)
+
+
+@dataclass
 class IfStmt(Stmt):
     """
     Class used to represent If statements. Constructed as a data class
@@ -81,7 +102,7 @@ class IfStmt(Stmt):
     then_branch: Stmt
     else_branch: Stmt | None
 
-    def accept(self, visitor: StmtVisitor):
+    def accept(self, visitor: StmtVisitor[R]) -> R:
         """Accept method override for Ifstmts."""
         return visitor.visit_IfStmt(self)
 
@@ -96,7 +117,7 @@ class Block(Stmt):
 
     stmts: List[Stmt]
 
-    def accept(self, visitor: StmtVisitor) -> R:
+    def accept(self, visitor: StmtVisitor[R]) -> R:
         """Accept method override for Block stmts."""
         return visitor.visit_Block(self)
 
@@ -113,7 +134,7 @@ class Var(Stmt):
     name: Token
     initializer: Expr
 
-    def accept(self, visitor: StmtVisitor) -> R:
+    def accept(self, visitor: StmtVisitor[R]) -> R:
         """Accept method override for Var statements."""
         return visitor.visit_Var(self)
 
@@ -128,7 +149,8 @@ class ExpressionStmt(Stmt):
 
     expr: Expr
 
-    def accept(self, visitor: StmtVisitor) -> R:
+    def accept(self, visitor: StmtVisitor[R]) -> R:
+        """Accept override for expression stmts."""
         return visitor.visit_ExpressionStmt(self)
 
 
@@ -142,5 +164,6 @@ class Print(Stmt):
 
     expr: Expr
 
-    def accept(self, visitor: StmtVisitor) -> R:
+    def accept(self, visitor: StmtVisitor[R]) -> R:
+        """Accept override for print stmts."""
         return visitor.visit_Print(self)

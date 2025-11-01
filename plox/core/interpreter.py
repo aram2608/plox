@@ -8,7 +8,16 @@ from ..ast.expr import (
     Literal,
     Grouping,
 )
-from ..ast.stmt import StmtVisitor, Stmt, Var, ExpressionStmt, Print, Block, IfStmt
+from ..ast.stmt import (
+    StmtVisitor,
+    Stmt,
+    Var,
+    ExpressionStmt,
+    Print,
+    Block,
+    IfStmt,
+    WhileStmt,
+)
 from .token import Token, TokenType
 from ..runtime.errors import LoxRunTimeError
 from ..runtime.environment import Environment
@@ -80,7 +89,14 @@ class Interpreter(ExprVisitor, StmtVisitor):
         # and have it retrieve the correct expression vist method
         return expr.accept(self)
 
+    def visit_WhileStmt(self, stmt: WhileStmt) -> None:
+        """Method to visit while statements."""
+        # While the underlying condition is true we evaluate the statement
+        while self.is_truthy(self.evaluate(stmt.condition)):
+            self.execute(stmt.stmt)
+
     def visit_IfStmt(self, stmt: IfStmt) -> None:
+        """Method to visit if statements."""
         # We check if the underlying conditon is truthy
         if self.is_truthy(self.evaluate(stmt.condition)):
             # If so we execute
@@ -113,7 +129,7 @@ class Interpreter(ExprVisitor, StmtVisitor):
         value: Any = self.evaluate(expr.value)
         # We then assign it to the environment
         # Error catching is handled by the environment itself
-        self.environment.assign(expr.name, expr.value)
+        self.environment.assign(expr.name, value)
         return value
 
     def visit_Variable(self, expr: Variable):

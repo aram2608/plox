@@ -1,1 +1,8 @@
-if (1 > 0) print 5; else print 3;
+var a = 0;
+var temp;
+
+for (var b = 1; a < 1000; b = temp + b) {
+  print a;
+  temp = a;
+  a = b;
+}
